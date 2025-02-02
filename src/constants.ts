@@ -1,0 +1,22 @@
+export const TEXT = {
+    SEARCH_TITLE: "GitHub Repository Search",
+    SELECT_LANGUAGE: "Select Language:",
+    BACK_BUTTON: "← Back to Search",
+    VIEW_DETAILS: "View Details",
+    LOADING: "Loading...",
+    REPO_NOT_FOUND: "Repository not found",
+    OWNER: "Owner",
+    STARS: "Stars",
+    FORKS: "Forks",
+    OPEN_ISSUES: "Open Issues",
+    LICENSE: "License",
+    NONE: "None",
+    REPOSITORY: "Repository",
+    VIEW_ON_GITHUB: "View on GitHub",
+    ERROR_FETCH_REPOS: "Failed to fetch repositories",
+    ERROR_FETCH_REPO_DETAILS: "Failed to fetch repository details",
+    NO_RESULTS: (language: string) => `No ${language} repositories found`,
+    API_RATE_LIMIT: "API rate limit exceeded - please try again later",
+    TRY_AGAIN: "Try again",
+    LEARN_MORE_RATE_LIMITS: "Learn about rate limits"
+};
