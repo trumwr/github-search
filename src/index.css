@@ -1,0 +1,145 @@
+:root {
+  --primary-blue: #2980e4;
+  --dark-blue: #1b579c;
+  --black-bg: #0a0a0a;
+  --light-bg: #e9e9e9;
+  --text-light: #ffffff;
+  --text-dark: #1a1a1a;
+}
+
+body {
+  background-color: var(--light-bg);
+  color: var(--text-dark);
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+/* Search Page Styling */
+.search-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.language-selector {
+  margin: 2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.language-selector label {
+  font-size: 1.1rem;
+}
+
+.language-selector select {
+  padding: 0.2rem 1rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Details Page Styling */
+.repo-details {
+  max-width: 800px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(15, 70, 190, 0.4);
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem
+}
+
+.details-grid div {
+  background: rgba(50, 108, 221, 0.1);
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid var(--primary-blue);
+}
+
+.details-grid strong {
+  color: var(--text-dark);
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.details-grid a {
+  transition: color 0.3s ease;
+}
+
+.details-grid a:hover {
+  color: var(--text-dark);
+}
+
+.button-primary {
+  background: var(--primary-blue);
+  color: var(--text-light);
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: transform 0.2s ease;
+}
+
+.button-primary:hover {
+  transform: translateY(-2px);
+}
+
+button {
+  background: var(--primary-blue);
+  color: var(--text-light);
+  border: none;
+  padding: 0.4rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: var(--dark-blue);
+}
+
+/* Grid Styling */
+.inovua-react-data-grid {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid var(--dark-blue) !important;
+  border-radius: 6px;
+}
+
+.inovua-react-data-grid__column-header {
+  background: var(--dark-blue) !important;
+  color: var(--text-light) !important;
+  font-weight: bold !important;
+}
+
+.inovua-react-data-grid__row {
+  background: rgba(25, 64, 149, 0.05) !important;
+  transition: background 0.3s ease;
+}
+
+.inovua-react-data-grid__row:hover {
+  background: rgba(25, 54, 149, 0.1) !important;
+}
+
+.error-message {
+  background: #ffe6e6;
+  border: 1px solid #ff0000;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.retry-button {
+  margin-top: 0.5rem;
+  background: var(--primary-blue);
+  color: white;
+  padding: 0.5rem 1rem;
+}
