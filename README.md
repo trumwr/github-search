@@ -21,7 +21,7 @@
 
 ## Known Limitations
 - GitHub API rate limits (60 req/hour unauthenticated)
-- No search query parameter persistence
+- No search query parameter persistence (Future update will retain search page state)
 
 ## Setup
 npm install

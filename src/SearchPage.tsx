@@ -54,7 +54,6 @@ const SearchPage: React.FC = () => {
         setLoading(true);
         const apiLang = LANGUAGE_MAP[language.toLowerCase()] || language;
         const config: AxiosRequestConfig = {
-          // Use a double cast to allow the signal property
           signal: controller.signal
         } as unknown as AxiosRequestConfig;
         const response: AxiosResponse<GitHubApiResponse> = await axios.get<GitHubApiResponse>(
@@ -66,9 +65,8 @@ const SearchPage: React.FC = () => {
         );
       } catch (err) {
         const axiosError = err as AxiosError;
-        // Instead of using 'any', cast to an object with an optional code property.
         if (((axiosError as { code?: string }).code) === 'ERR_CANCELED') {
-          return; // Request was canceled, do nothing
+          return;
         }
         if (axiosError.response?.status === 403) {
           setError(TEXT.API_RATE_LIMIT);
@@ -144,11 +142,6 @@ const SearchPage: React.FC = () => {
       {error && (
         <div className="error-message">
           <p style={{ color: 'red' }}>{error}</p>
-          {error === TEXT.API_RATE_LIMIT && (
-            <button onClick={() => setPage(1)}>
-              {TEXT.TRY_AGAIN}
-            </button>
-          )}
         </div>
       )}
 

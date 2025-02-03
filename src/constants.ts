@@ -15,8 +15,6 @@ export const TEXT = {
     VIEW_ON_GITHUB: "View on GitHub",
     ERROR_FETCH_REPOS: "Failed to fetch repositories",
     ERROR_FETCH_REPO_DETAILS: "Failed to fetch repository details",
-    NO_RESULTS: (language: string) => `No ${language} repositories found`,
+    NO_RESULTS: "No repositories found",
     API_RATE_LIMIT: "API rate limit exceeded - please try again later",
-    TRY_AGAIN: "Try again",
-    LEARN_MORE_RATE_LIMITS: "Learn about rate limits"
 };
