@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 import ReactDataGrid from '@inovua/reactdatagrid-community';
 import { TypeColumn } from '@inovua/reactdatagrid-community/types';
 import '@inovua/reactdatagrid-community/index.css';
 import { TEXT } from './constants';
+import { useDebounce } from "./useDebounce";
 
 interface Repo {
   id: number;
@@ -32,9 +33,9 @@ interface GitHubApiResponse {
 
 // Map for language conversion if needed for the API query
 const LANGUAGE_MAP: Record<string, string> = {
-  javascript: 'javascript',
-  typescript: 'typescript',
-  'c#': 'csharp'
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+  'c#': 'C#'
 };
 
 const SearchPage: React.FC = () => {
@@ -44,49 +45,79 @@ const SearchPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const navigate = useNavigate();
+  const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN ?? "";
+  const headers = useMemo(() => {
+    const result: { [key: string]: string } = {
+      Accept: "application/vnd.github.v3+json",
+    };
+  
+    if (GITHUB_TOKEN) {
+      result['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
+    }
+  
+    return result;
+  }, [GITHUB_TOKEN]);
+
+  if (GITHUB_TOKEN) {
+    headers['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
+  }
+
+  const fetchData = useCallback(async ({ skip, limit }: { skip: number; limit: number }): Promise<Repo[]> => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const apiLang = LANGUAGE_MAP[language.toLowerCase()] || language;
+      const query = searchTerm.trim()
+        ? `${encodeURIComponent(searchTerm)}+language:${apiLang}`
+        : `language:${apiLang}`;
+
+      const response: AxiosResponse<GitHubApiResponse> = await axios.get<GitHubApiResponse>(
+        `https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc&per_page=${limit}&page=${skip / limit + 1}`,
+        { headers }
+      );
+
+      return response.data.items;
+    } catch (err) {
+      const axiosError = err as AxiosError;
+      if (axiosError.response?.status === 429) {
+        setError(TEXT.API_RATE_LIMIT);
+        return [];
+      }
+
+      setError(TEXT.ERROR_FETCH_REPOS);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [headers, language, searchTerm]);
+
+  const fetchDataSync = useCallback(async ({ skip, limit }: { skip: number; limit: number }) => {
+    console.log("Fetching data for grid pagination:", { skip, limit, page });
+
+    if (!searchTerm.trim() && page === 1) {
+      console.log("Fetching default JavaScript repositories");
+    }
+
+    const data = await fetchData({ skip, limit });
+
+    return {
+      data: data ?? [],
+      count: 1000,
+    };
+  }, [page, searchTerm, fetchData]);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchData = async () => {
-      setError(null);
-      try {
-        setLoading(true);
-        const apiLang = LANGUAGE_MAP[language.toLowerCase()] || language;
-        const query = searchTerm 
-          ? `${encodeURIComponent(searchTerm)}+language:${apiLang}`
-          : `language:${apiLang}`;
-
-        const response: AxiosResponse<GitHubApiResponse> = await axios.get<GitHubApiResponse>(
-          `https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc&per_page=10&page=${page}`,
-          {
-            signal: controller.signal
-          }
-        );
-
-        setRepos(response.data.items);
-      } catch (err) {
-        const axiosError = err as AxiosError;
-        if (((axiosError as { code?: string }).code) === 'ERR_CANCELED') {
-          return;
-        }
-        if (axiosError.response?.status === 403) {
-          setError(TEXT.API_RATE_LIMIT);
-        } else {
-          console.error('API Error:', axiosError);
-          setError(TEXT.ERROR_FETCH_REPOS);
-        }
-      } finally {
-        setLoading(false);
-      }
+    const fetchAndSetData = async () => {
+      const data = await fetchData({ skip: (page - 1) * 10, limit: 10 });
+      setRepos(data ?? []);
     };
 
-    fetchData();
+    fetchAndSetData();
+  }, [language, debouncedSearchTerm, page, fetchData]);
 
-    // Cleanup: cancel the request if the component unmounts or dependencies change
-    return () => controller.abort();
-  }, [language, page, searchTerm]);
 
   // Define the grid columns
   const columns: TypeColumn[] = [
@@ -118,7 +149,7 @@ const SearchPage: React.FC = () => {
 
   return (
     <div className="search-page">
-      <h1>{TEXT.SEARCH_TITLE}</h1>     
+      <h1>{TEXT.SEARCH_TITLE}</h1>
 
       <div className="language-selector">
         <label>{TEXT.SELECT_LANGUAGE}</label>
@@ -136,20 +167,20 @@ const SearchPage: React.FC = () => {
       </div>
 
       <div className="search-filter">
-      <input
-        type="text"
-        placeholder="Filter repositories by name/description..."
-        value={searchTerm}
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-          setPage(1);
-        }}
-      />
-    </div>
+        <input
+          type="text"
+          placeholder="Filter repositories by name/description..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1);
+          }}
+        />
+      </div>
 
       {repos.length === 0 && !loading && (
         <div className="no-results">
-          {searchTerm 
+          {searchTerm
             ? `No results for "${searchTerm}" in ${LANGUAGE_MAP[language.toLowerCase()]}`
             : `No ${LANGUAGE_MAP[language.toLowerCase()]} repositories found`}
         </div>
@@ -164,10 +195,11 @@ const SearchPage: React.FC = () => {
       <ReactDataGrid
         idProperty="id"
         columns={columns}
-        dataSource={repos}
+        dataSource={fetchDataSync}
         style={{ minHeight: 500 }}
-        loading={loading}
-        pagination
+        pagination={true}
+        defaultLimit={10}
+        defaultSkip={0}
       />
     </div>
   );
