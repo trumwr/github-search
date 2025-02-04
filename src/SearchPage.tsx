@@ -47,22 +47,12 @@ const SearchPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const navigate = useNavigate();
-  const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN ?? "";
+  // const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN ?? "";
   const headers = useMemo(() => {
-    const result: { [key: string]: string } = {
+    return {
       Accept: "application/vnd.github.v3+json",
     };
-  
-    if (GITHUB_TOKEN) {
-      result['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
-    }
-  
-    return result;
-  }, [GITHUB_TOKEN]);
-
-  if (GITHUB_TOKEN) {
-    headers['Authorization'] = `Bearer ${GITHUB_TOKEN}`;
-  }
+  }, []);
 
   const fetchData = useCallback(async ({ skip, limit }: { skip: number; limit: number }): Promise<Repo[]> => {
     setError(null);
