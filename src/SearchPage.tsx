@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import ReactDataGrid, { TypeColumn } from '@inovua/reactdatagrid-community';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import ReactDataGrid from '@inovua/reactdatagrid-community';
+import { TypeColumn } from '@inovua/reactdatagrid-community/types';
 import '@inovua/reactdatagrid-community/index.css';
 import { TEXT } from './constants';
 
-// Define the Repo interface
 interface Repo {
   id: number;
   name: string;
@@ -39,6 +39,7 @@ const LANGUAGE_MAP: Record<string, string> = {
 
 const SearchPage: React.FC = () => {
   const [language, setLanguage] = useState('javascript');
+  const [searchTerm, setSearchTerm] = useState('');
   const [repos, setRepos] = useState<Repo[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -53,16 +54,18 @@ const SearchPage: React.FC = () => {
       try {
         setLoading(true);
         const apiLang = LANGUAGE_MAP[language.toLowerCase()] || language;
-        const config: AxiosRequestConfig = {
-          signal: controller.signal
-        } as unknown as AxiosRequestConfig;
+        const query = searchTerm 
+          ? `${encodeURIComponent(searchTerm)}+language:${apiLang}`
+          : `language:${apiLang}`;
+
         const response: AxiosResponse<GitHubApiResponse> = await axios.get<GitHubApiResponse>(
-          `https://api.github.com/search/repositories?q=language:${apiLang}&sort=stars&order=desc&per_page=10&page=${page}`,
-          config
+          `https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc&per_page=10&page=${page}`,
+          {
+            signal: controller.signal
+          }
         );
-        setRepos((prev) =>
-          page === 1 ? response.data.items : [...prev, ...response.data.items]
-        );
+
+        setRepos(response.data.items);
       } catch (err) {
         const axiosError = err as AxiosError;
         if (((axiosError as { code?: string }).code) === 'ERR_CANCELED') {
@@ -82,10 +85,8 @@ const SearchPage: React.FC = () => {
     fetchData();
 
     // Cleanup: cancel the request if the component unmounts or dependencies change
-    return () => {
-      controller.abort();
-    };
-  }, [language, page]);
+    return () => controller.abort();
+  }, [language, page, searchTerm]);
 
   // Define the grid columns
   const columns: TypeColumn[] = [
@@ -117,7 +118,8 @@ const SearchPage: React.FC = () => {
 
   return (
     <div className="search-page">
-      <h1>{TEXT.SEARCH_TITLE}</h1>
+      <h1>{TEXT.SEARCH_TITLE}</h1>     
+
       <div className="language-selector">
         <label>{TEXT.SELECT_LANGUAGE}</label>
         <select
@@ -133,9 +135,23 @@ const SearchPage: React.FC = () => {
         </select>
       </div>
 
+      <div className="search-filter">
+      <input
+        type="text"
+        placeholder="Filter repositories by name/description..."
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setPage(1);
+        }}
+      />
+    </div>
+
       {repos.length === 0 && !loading && (
         <div className="no-results">
-          {`No ${LANGUAGE_MAP[language.toLowerCase()]} repositories found`}
+          {searchTerm 
+            ? `No results for "${searchTerm}" in ${LANGUAGE_MAP[language.toLowerCase()]}`
+            : `No ${LANGUAGE_MAP[language.toLowerCase()]} repositories found`}
         </div>
       )}
 
@@ -152,7 +168,6 @@ const SearchPage: React.FC = () => {
         style={{ minHeight: 500 }}
         loading={loading}
         pagination
-        onPageChange={(pageInfo: { page: number }) => setPage(pageInfo.page)}
       />
     </div>
   );
