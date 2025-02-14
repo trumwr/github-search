@@ -6,6 +6,8 @@
 - Repository details page
 - Error handling for API limits
 - Responsive design
+- (NEW) Page persistance when returning from Details page
+- (NEW) Fixed issue with C# not paginating properly. Now encoding the # character in the API query.
 
 ## Technologies
 - React + TypeScript
@@ -21,7 +23,6 @@
 
 ## Known Limitations
 - GitHub API rate limits (60 req/hour unauthenticated)
-- No search query parameter persistence (Future update will retain search page state)
 
 ## Setup
 npm install
